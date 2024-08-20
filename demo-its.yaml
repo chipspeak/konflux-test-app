@@ -1,62 +1,67 @@
-kind: Pipeline
 apiVersion: tekton.dev/v1beta1
+kind: Pipeline
 metadata:
   name: check-node-app-output-pipeline
 spec:
   params:
-    - description: 'Snapshot of the application'
-      name: SNAPSHOT
-      default: '{"components": [{"name":"test-app", "containerImage": "quay.io/example/repo:latest"}]}'
-      type: string
-    - description: 'Namespace where the application is running'
-      name: NAMESPACE
-      default: "default"
-      type: string
-    - description: 'Expected output'
-      name: EXPECTED_OUTPUT
-      default: "Hello World!"
+    - name: EXPECTED_OUTPUT
+      description: 'Expected output from the Node.js application'
+      default: "Hello Tech Meetup!"
       type: string
   tasks:
     - name: install-dependencies
       description: Install Node.js dependencies
       taskSpec:
+        params:
+          - name: EXPECTED_OUTPUT
+        workspaces:
+          - name: source
         steps:
-        - name: install
-          image: node:16
-          script: |
-            echo "Current directory contents:"
-            ls -la
-            echo "Installing dependencies"
-            npm install
+          - name: install
+            image: node:16
+            script: |
+              echo "Checking current directory contents..."
+              ls -la
+              if [ -f "package.json" ]; then
+                echo "package.json found. Cleaning npm cache and installing dependencies..."
+                npm cache clean --force
+                rm -rf node_modules package-lock.json
+                npm install
+              else
+                echo "Error: package.json not found in the workspace."
+                exit 1
+              fi
     - name: start-server
       description: Start the Node.js server
       runAfter:
         - install-dependencies
       taskSpec:
+        workspaces:
+          - name: source
         steps:
-        - name: start
-          image: node:16
-          script: |
-            node app.js &
-            sleep 5
+          - name: start
+            image: node:16
+            script: |
+              echo "Starting Node.js server..."
+              node app.js &
+              sleep 5
     - name: check-output
       description: Check the output of the Node.js application
       runAfter:
         - start-server
-      params:
-        - name: EXPECTED_OUTPUT
-          value: $(params.EXPECTED_OUTPUT)
       taskSpec:
         params:
-        - name: EXPECTED_OUTPUT
+          - name: EXPECTED_OUTPUT
+        workspaces:
+          - name: source
         steps:
-        - name: check
-          image: curlimages/curl:7.68.0
-          script: |
-            RESPONSE=$(curl -s http://localhost:3000)
-            if [ "$RESPONSE" == "$(params.EXPECTED_OUTPUT)" ]; then
-              echo "Test passed!"
-            else
-              echo "Test failed: expected '$(params.EXPECTED_OUTPUT)', got '$RESPONSE'"
-              exit 1
-            fi
+          - name: check
+            image: curlimages/curl:7.68.0
+            script: |
+              RESPONSE=$(curl -s http://localhost:3000)
+              if [ "$RESPONSE" == "$(params.EXPECTED_OUTPUT)" ]; then
+                echo "Test passed!"
+              else
+                echo "Test failed: expected '$(params.EXPECTED_OUTPUT)', got '$RESPONSE'"
+                exit 1
+              fi
