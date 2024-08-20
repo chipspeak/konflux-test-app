@@ -18,12 +18,14 @@ spec:
               sleep 5  # Adjust the sleep duration if needed
     - name: check-output
       description: Check the output of the Node.js application
+      params:
+      - name: EXPECTED_OUTPUT
+      - value: $(params.EXPECTED_OUTPUT)
       runAfter:
         - start-server
       taskSpec:
         params:
           - name: EXPECTED_OUTPUT
-          - value: $(params.EXPECTED_OUTPUT)
         steps:
           - name: check
             image: curlimages/curl:7.68.0
