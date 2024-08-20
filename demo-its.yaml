@@ -1,73 +1,59 @@
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  name: install-dependencies
-spec:
-  steps:
-    - name: install
-      image: node:16
-      script: |
-        npm install
-
----
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  name: start-server
-spec:
-  steps:
-    - name: start
-      image: node:16
-      script: |
-        node app.js &
-        sleep 5
-
----
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  name: check-output
-spec:
-  steps:
-    - name: check
-      image: curlimages/curl:7.68.0
-      script: |
-        RESPONSE=$(curl -s http://localhost:3000)
-        if [ "$RESPONSE" == "Hello Tech Meetup!" ]; then
-          echo "Test passed!!"
-        else
-          echo "Test failed: expected 'Hello Tech Meetup!', got '$RESPONSE'"
-          exit 1
-        fi
-
----
-apiVersion: tekton.dev/v1beta1
 kind: Pipeline
+apiVersion: tekton.dev/v1beta1
 metadata:
-  name: check-node-app-output
+  name: check-node-app-output-pipeline
 spec:
+  params:
+    - description: 'Snapshot of the application'
+      name: SNAPSHOT
+      default: '{"components": [{"name":"test-app", "containerImage": "quay.io/example/repo:latest"}]}'
+      type: string
+    - description: 'Namespace where the application is running'
+      name: NAMESPACE
+      default: "default"
+      type: string
+    - description: 'Expected output'
+      name: EXPECTED_OUTPUT
+      default: "Hello World!"
+      type: string
   tasks:
     - name: install-dependencies
-      taskRef:
-        name: install-dependencies
-
+      description: Install Node.js dependencies
+      taskSpec:
+        steps:
+        - name: install
+          image: node:16
+          script: |
+            npm install
     - name: start-server
+      description: Start the Node.js server
       runAfter:
         - install-dependencies
-      taskRef:
-        name: start-server
-
+      taskSpec:
+        steps:
+        - name: start
+          image: node:16
+          script: |
+            node app.js &
+            sleep 5
     - name: check-output
+      description: Check the output of the Node.js application
       runAfter:
         - start-server
-      taskRef:
-        name: check-output
-
----
-apiVersion: tekton.dev/v1beta1
-kind: PipelineRun
-metadata:
-  name: check-node-app-output-run
-spec:
-  pipelineRef:
-    name: check-node-app-output
+      params:
+        - name: EXPECTED_OUTPUT
+          value: $(params.EXPECTED_OUTPUT)
+      taskSpec:
+        params:
+        - name: EXPECTED_OUTPUT
+        steps:
+        - name: check
+          image: curlimages/curl:7.68.0
+          script: |
+            RESPONSE=$(curl -s http://localhost:3000)
+            if [ "$RESPONSE" == "$(params.EXPECTED_OUTPUT)" ]; then
+              echo "Test passed!"
+            else
+              echo "Test failed: expected '$(params.EXPECTED_OUTPUT)', got '$RESPONSE'"
+              exit 1
+            fi
