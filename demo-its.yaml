@@ -1,64 +1,37 @@
 apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  name: install-dependencies
-spec:
-  steps:
-    - name: install
-      image: node:16
-      script: |
-        npm install
-
----
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  name: start-server
-spec:
-  steps:
-    - name: start
-      image: node:16
-      script: |
-        node app.js &
-        sleep 5
-
----
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  name: check-output
-spec:
-  steps:
-    - name: check
-      image: curlimages/curl:7.68.0
-      script: |
-        RESPONSE=$(curl -s http://localhost:3000)
-        if [ "$RESPONSE" == "Hello Tech Meetup!" ]; then
-          echo "Test passed!!"
-        else
-          echo "Test failed: expected 'Hello Tech Meetup!', got '$RESPONSE'"
-          exit 1
-        fi
-
----
-apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
   name: check-node-app-output
 spec:
   tasks:
     - name: install-dependencies
-      taskRef:
-        name: install-dependencies
+      steps:
+        - name: install
+          image: node:16
+          script: |
+            npm install
 
     - name: start-server
-      taskRef:
-        name: start-server
       runAfter: 
         - install-dependencies
+      steps:
+        - name: start
+          image: node:16
+          script: |
+            node app.js &
+            sleep 5
 
     - name: check-output
-      taskRef:
-        name: check-output
       runAfter: 
         - start-server
+      steps:
+        - name: check
+          image: curlimages/curl:7.68.0
+          script: |
+            RESPONSE=$(curl -s http://localhost:3000)
+            if [ "$RESPONSE" == "Hello Tech Meetup!" ]; then
+              echo "Test passed!!"
+            else
+              echo "Test failed: expected 'Hello Tech Meetup!', got '$RESPONSE'"
+              exit 1
+            fi
