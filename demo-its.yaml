@@ -25,7 +25,7 @@ spec:
         RESPONSE=$(curl -s http://localhost:3000)
         # Check if the response matches the expected output
         if [ "$RESPONSE" == "Hello Tech Meetup!" ]; then
-          echo "Test passed!"
+          echo "Test passed!!"
         else
           echo "Test failed: expected 'Hello Tech Meetup!', got '$RESPONSE'"
           exit 1
