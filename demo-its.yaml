@@ -8,14 +8,10 @@ spec:
       description: 'Expected output from the Node.js application'
       default: "Hello Tech Meetup!"
       type: string
-  workspaces:
-    - name: source
   tasks:
     - name: start-server
       description: Start the Node.js server
       taskSpec:
-        workspaces:
-          - name: source
         steps:
           - name: start
             image: your-repo/your-app:latest  
@@ -30,8 +26,6 @@ spec:
       taskSpec:
         params:
           - name: EXPECTED_OUTPUT
-        workspaces:
-          - name: source
         steps:
           - name: check
             image: curlimages/curl:7.68.0
