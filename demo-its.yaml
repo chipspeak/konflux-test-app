@@ -24,6 +24,9 @@ spec:
         - name: install
           image: node:16
           script: |
+            echo "Current directory contents:"
+            ls -la
+            echo "Installing dependencies"
             npm install
     - name: start-server
       description: Start the Node.js server
