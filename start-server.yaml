@@ -9,5 +9,4 @@ spec:
       script: |
         node app.js &
         sleep 5
-  workspaces:
-    - name: source
+

@@ -8,5 +8,3 @@ spec:
       image: node:16
       script: |
         npm install
-  workspaces:
-    - name: source

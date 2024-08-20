@@ -3,30 +3,18 @@ kind: Pipeline
 metadata:
   name: check-node-app-output
 spec:
-  workspaces:
-    - name: shared-workspace
   tasks:
     - name: install-dependencies
       taskRef:
         name: install-dependencies
-      workspaces:
-        - name: source
-          workspace: shared-workspace
-
     - name: start-server
       taskRef:
         name: start-server
       runAfter: 
         - install-dependencies
-      workspaces:
-        - name: source
-          workspace: shared-workspace
-
     - name: check-output
       taskRef:
         name: check-output
       runAfter: 
         - start-server
-      workspaces:
-        - name: source
-          workspace: shared-workspace
+
