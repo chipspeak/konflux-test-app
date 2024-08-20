@@ -11,7 +11,7 @@ spec:
       taskSpec:
         steps:
           - name: start
-            image: your-repo/your-app:latest  # Replace with your Docker image
+            image: Dockerfile # Replace with your Docker image
             script: |
               echo "Starting Node.js server..."
               node app.js &
