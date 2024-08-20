@@ -3,13 +3,18 @@ kind: Pipeline
 metadata:
   name: node-app-test-pipeline
 spec:
+  params:
+    - name: EXPECTED_OUTPUT
+      description: 'Expected output from the Node.js application'
+      default: "Hello Tech Meetup!"  # Default value if needed
+      type: string
   tasks:
     - name: start-server
       description: Start the Node.js server
       taskSpec:
         steps:
           - name: start
-            image: your-repo/your-app:latest  
+            image: your-repo/your-app:latest  # Replace with your Docker image
             script: |
               echo "Starting Node.js server..."
               node app.js &
@@ -21,7 +26,6 @@ spec:
       taskSpec:
         params:
           - name: EXPECTED_OUTPUT
-          - value: $(params.EXPECTED_OUTPUT)
         steps:
           - name: check
             image: curlimages/curl:7.68.0
