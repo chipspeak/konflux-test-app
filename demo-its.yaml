@@ -1,50 +1,28 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: check-node-app-output-pipeline
+  name: node-app-test-pipeline
 spec:
   params:
     - name: EXPECTED_OUTPUT
       description: 'Expected output from the Node.js application'
       default: "Hello Tech Meetup!"
       type: string
+  workspaces:
+    - name: source
   tasks:
-    - name: install-dependencies
-      description: Install Node.js dependencies
-      taskSpec:
-        params:
-          - name: EXPECTED_OUTPUT
-        workspaces:
-          - name: source
-        steps:
-          - name: install
-            image: node:16
-            script: |
-              echo "Checking current directory contents..."
-              ls -la
-              if [ -f "package.json" ]; then
-                echo "package.json found. Cleaning npm cache and installing dependencies..."
-                npm cache clean --force
-                rm -rf node_modules package-lock.json
-                npm install
-              else
-                echo "Error: package.json not found in the workspace."
-                exit 1
-              fi
     - name: start-server
       description: Start the Node.js server
-      runAfter:
-        - install-dependencies
       taskSpec:
         workspaces:
           - name: source
         steps:
           - name: start
-            image: node:16
+            image: your-repo/your-app:latest  
             script: |
               echo "Starting Node.js server..."
               node app.js &
-              sleep 5
+              sleep 5  # Adjust the sleep duration if needed
     - name: check-output
       description: Check the output of the Node.js application
       runAfter:
