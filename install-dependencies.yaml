@@ -1,0 +1,12 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: install-dependencies
+spec:
+  steps:
+    - name: install
+      image: node:16
+      script: |
+        npm install
+  workspaces:
+    - name: source
