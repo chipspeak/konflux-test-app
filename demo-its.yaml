@@ -12,7 +12,7 @@ spec:
       name: NAMESPACE
       default: "default"
       type: string
-    - description: 'Expected output'
+    - description: 'Expected output of curl'
       name: EXPECTED_OUTPUT
       default: "Hello World!"
       type: string
