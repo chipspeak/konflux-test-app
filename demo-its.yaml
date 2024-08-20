@@ -1,0 +1,32 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: check-node-app-output
+spec:
+  steps:
+    - name: install-dependencies
+      image: node:16
+      script: |
+        # Install dependencies
+        npm install
+
+    - name: start-server
+      image: node:16
+      script: |
+        # Start the Node.js app in the background
+        node app.js &
+        # Wait a few seconds to make sure the server is running
+        sleep 5
+
+    - name: check-output
+      image: curlimages/curl:7.68.0
+      script: |
+        # Make an HTTP request to the running app
+        RESPONSE=$(curl -s http://localhost:3000)
+        # Check if the response matches the expected output
+        if [ "$RESPONSE" == "Hello Tech Meetup!" ]; then
+          echo "Test passed!"
+        else
+          echo "Test failed: expected 'Hello Tech Meetup!', got '$RESPONSE'"
+          exit 1
+        fi
